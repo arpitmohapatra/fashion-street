@@ -11,22 +11,17 @@ import { Mannequin } from '../svg/Mannequin';
 import { GARMENT_LABELS } from '../utils/slotOf';
 import type { Garment, GarmentType, Occasion } from '../db/types';
 
-// Resolves dynamic component safely
 const GarmentSVG = ({ type, color }: { type: GarmentType; color: string }) => {
   const SVG = GARMENT_SVG[type];
   return <SVG color={color} />;
 };
 
-// Outfit coordinate constants
-// Top SVG:    viewBox 200×240, rendered at w=160px → h=192px
-// Bottom SVG: viewBox 200×260, rendered at w=160px → h=208px
-// Mannequin:  viewBox "0 -62 200 522" → fills 160px wide × 418px tall
 const W = 160;
-const HEAD_H = 50;          // px, extra space above outfit for mannequin head
-const TOP_H = 192;          // 160 * 240/200
-const BOT_H = 208;          // 160 * 260/200
-const BOT_TOP = HEAD_H + 160;  // 210px = head offset + (top height − overlap)
-const TOTAL_H = HEAD_H + TOP_H + (BOT_H - 32);  // 418px
+const HEAD_H = 50;
+const TOP_H = 192;
+const BOT_H = 208;
+const BOT_TOP = HEAD_H + 160;
+const TOTAL_H = HEAD_H + TOP_H + (BOT_H - 32);
 
 interface SlotControlProps {
   items: Garment[];
@@ -161,105 +156,118 @@ export const OutfitPage = () => {
     setTimeout(() => setSaved(false), 1500);
   };
 
+  const controls = (
+    <div className="space-y-3">
+      {/* Upper body: Top | Outer tabs */}
+      <div>
+        <div className="flex p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl gap-1 mb-2">
+          <button
+            onClick={() => setUpperTab('top')}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              upperTab === 'top'
+                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                : 'text-zinc-500 dark:text-zinc-400'
+            }`}
+          >
+            Top
+          </button>
+          <button
+            onClick={() => setUpperTab('outer')}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              upperTab === 'outer'
+                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                : 'text-zinc-500 dark:text-zinc-400'
+            }`}
+          >
+            {currentOuter
+              ? `Outer · ${currentOuter.label || GARMENT_LABELS[currentOuter.type]}`
+              : 'Outer'}
+          </button>
+        </div>
+
+        {upperTab === 'top' ? (
+          <SlotControl items={tops} index={topIdx} onNext={nextTop} onPrev={prevTop} />
+        ) : (
+          <SlotControl items={outers} index={outerIdx} onNext={nextOuter} onPrev={prevOuter} allowNone />
+        )}
+      </div>
+
+      <div className="border-t border-zinc-200 dark:border-zinc-800" />
+
+      {/* Bottom */}
+      <SlotControl items={bottoms} index={bottomIdx} onNext={nextBottom} onPrev={prevBottom} />
+    </div>
+  );
+
+  const actions = (
+    <div className="flex gap-3">
+      <button
+        onClick={shuffle}
+        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-sm font-semibold text-zinc-700 dark:text-zinc-300 active:scale-95 transition-transform"
+      >
+        <Shuffle className="w-4 h-4" /> Shuffle
+      </button>
+      <button
+        onClick={saveOutfit}
+        disabled={!currentTop && !currentBottom}
+        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-white text-sm font-semibold disabled:opacity-40 active:scale-95 transition-all ${
+          saved ? 'bg-green-600' : 'bg-indigo-600'
+        }`}
+      >
+        <Save className="w-4 h-4" />
+        {saved ? 'Saved!' : 'Save Look'}
+      </button>
+    </div>
+  );
+
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      {/* Occasion filter */}
-      <div className="safe-top pt-3 pb-2 shrink-0">
-        <FilterChips
-          value={occasionFilter}
-          onChange={(o: Occasion | null) => setOccasionFilter(o)}
-        />
-      </div>
+    <div className="flex flex-col md:flex-row h-full overflow-hidden">
 
-      {/* ── Outfit canvas: mannequin + garments ── */}
-      <div className="flex-1 flex items-center justify-center overflow-hidden py-2">
-        <div className="relative shrink-0" style={{ width: W, height: TOTAL_H }}>
-          {/* Mannequin */}
-          <div className="absolute inset-0 z-0">
-            <Mannequin />
+      {/* ── Left panel: filter + mannequin canvas ── */}
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <div className="safe-top pt-3 pb-2 shrink-0">
+          <FilterChips
+            value={occasionFilter}
+            onChange={(o: Occasion | null) => setOccasionFilter(o)}
+          />
+        </div>
+
+        <div className="flex-1 flex items-center justify-center overflow-hidden py-2">
+          <div className="relative shrink-0" style={{ width: W, height: TOTAL_H }}>
+            <div className="absolute inset-0 z-0">
+              <Mannequin />
+            </div>
+            {currentTop && (
+              <div className="absolute z-10" style={{ top: HEAD_H, left: 0, width: W, height: TOP_H, color: '#52525b' }}>
+                <GarmentSVG type={currentTop.type} color={currentTop.color} />
+              </div>
+            )}
+            {currentOuter && (
+              <div className="absolute z-20" style={{ top: HEAD_H, left: 0, width: W, height: TOP_H, color: '#52525b' }}>
+                <GarmentSVG type={currentOuter.type} color={currentOuter.color} />
+              </div>
+            )}
+            {currentBottom && (
+              <div className="absolute z-10" style={{ top: BOT_TOP, left: 0, width: W, height: BOT_H, color: '#52525b' }}>
+                <GarmentSVG type={currentBottom.type} color={currentBottom.color} />
+              </div>
+            )}
           </div>
-          {/* Top garment */}
-          {currentTop && (
-            <div className="absolute z-10" style={{ top: HEAD_H, left: 0, width: W, height: TOP_H, color: '#52525b' }}>
-              <GarmentSVG type={currentTop.type} color={currentTop.color} />
-            </div>
-          )}
-          {/* Outer */}
-          {currentOuter && (
-            <div className="absolute z-20" style={{ top: HEAD_H, left: 0, width: W, height: TOP_H, color: '#52525b' }}>
-              <GarmentSVG type={currentOuter.type} color={currentOuter.color} />
-            </div>
-          )}
-          {/* Bottom */}
-          {currentBottom && (
-            <div className="absolute z-10" style={{ top: BOT_TOP, left: 0, width: W, height: BOT_H, color: '#52525b' }}>
-              <GarmentSVG type={currentBottom.type} color={currentBottom.color} />
-            </div>
-          )}
         </div>
       </div>
 
-      {/* ── Controls ── */}
-      <div className="shrink-0 px-4 pb-2 space-y-3">
-        {/* Upper body: Top | Outer tabs */}
-        <div>
-          <div className="flex p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl gap-1 mb-2">
-            <button
-              onClick={() => setUpperTab('top')}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                upperTab === 'top'
-                  ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                  : 'text-zinc-500 dark:text-zinc-400'
-              }`}
-            >
-              Top
-            </button>
-            <button
-              onClick={() => setUpperTab('outer')}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                upperTab === 'outer'
-                  ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                  : 'text-zinc-500 dark:text-zinc-400'
-              }`}
-            >
-              {currentOuter
-                ? `Outer · ${currentOuter.label || GARMENT_LABELS[currentOuter.type]}`
-                : 'Outer'}
-            </button>
-          </div>
-
-          {upperTab === 'top' ? (
-            <SlotControl items={tops} index={topIdx} onNext={nextTop} onPrev={prevTop} />
-          ) : (
-            <SlotControl items={outers} index={outerIdx} onNext={nextOuter} onPrev={prevOuter} allowNone />
-          )}
+      {/* ── Right panel: controls + actions ── */}
+      {/* Mobile: shrink-0 at bottom of column  */}
+      {/* Desktop: w-80 side panel, vertically centered */}
+      <div className="shrink-0 md:w-80 md:border-l border-zinc-200 dark:border-zinc-800 md:flex md:flex-col md:justify-center bg-white/50 dark:bg-zinc-900/50 md:bg-transparent md:dark:bg-transparent">
+        <div className="px-4 pb-2 pt-1 md:px-6 md:py-0">
+          {controls}
         </div>
-
-        <div className="border-t border-zinc-200 dark:border-zinc-800" />
-
-        {/* Bottom */}
-        <SlotControl items={bottoms} index={bottomIdx} onNext={nextBottom} onPrev={prevBottom} />
+        <div className="px-4 pb-4 pt-2 md:px-6 md:pt-4">
+          {actions}
+        </div>
       </div>
 
-      {/* ── Actions ── */}
-      <div className="shrink-0 px-4 pb-4 pt-2 flex gap-3">
-        <button
-          onClick={shuffle}
-          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-sm font-semibold text-zinc-700 dark:text-zinc-300 active:scale-95 transition-transform"
-        >
-          <Shuffle className="w-4 h-4" /> Shuffle
-        </button>
-        <button
-          onClick={saveOutfit}
-          disabled={!currentTop && !currentBottom}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-white text-sm font-semibold disabled:opacity-40 active:scale-95 transition-all ${
-            saved ? 'bg-green-600' : 'bg-indigo-600'
-          }`}
-        >
-          <Save className="w-4 h-4" />
-          {saved ? 'Saved!' : 'Save Look'}
-        </button>
-      </div>
     </div>
   );
 };

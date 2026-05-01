@@ -76,14 +76,21 @@ export const OutfitsPage = () => {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="safe-top shrink-0 px-4 pt-4 pb-2">
-        <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Saved Looks</h1>
+      <div className="safe-top shrink-0 px-4 md:px-6 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800/60 bg-white dark:bg-zinc-950">
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Saved Looks</h1>
+          {outfits.length > 0 && (
+            <span className="text-xs text-zinc-400">{outfits.length} saved</span>
+          )}
+        </div>
       </div>
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-3">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4">
         {outfits.length === 0 ? (
           <EmptyState message="No saved looks yet. Assemble an outfit and tap Save." />
         ) : (
-          outfits.map(o => <OutfitRow key={o.id} outfit={o} />)
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {outfits.map(o => <OutfitRow key={o.id} outfit={o} />)}
+          </div>
         )}
       </div>
     </div>

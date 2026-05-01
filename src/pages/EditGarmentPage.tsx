@@ -67,11 +67,12 @@ export const EditGarmentPage = () => {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="safe-top shrink-0 px-4 pt-4 pb-2">
+      <div className="safe-top shrink-0 px-4 md:px-6 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800/60 bg-white dark:bg-zinc-950">
         <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Edit Garment</h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-6">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 pb-6">
+        <div className="max-w-2xl mx-auto pt-6 space-y-6">
         <div className="flex justify-center">
           <div className="w-28 h-28" style={{ color: '#71717a' }}>
             <PreviewSVG color={color} />
@@ -154,6 +155,7 @@ export const EditGarmentPage = () => {
         >
           {saving ? 'Saving…' : 'Save Changes'}
         </button>
+        </div>
       </div>
     </div>
   );
