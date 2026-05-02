@@ -10,13 +10,13 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/*.png', 'icons/*.svg'],
+      includeAssets: ['icons/*.png', 'icons/*.svg', 'favicon-32.png', 'favicon-16.png'],
       manifest: {
         name: 'Fashion Street',
         short_name: 'Closet',
         description: 'Your personal closet manager',
-        theme_color: '#18181b',
-        background_color: '#09090b',
+        theme_color: '#4338ca',
+        background_color: '#1e1b4b',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/fashion-street/',
